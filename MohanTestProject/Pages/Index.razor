@@ -1,0 +1,138 @@
+﻿@page "/"
+@using MohanTestProject.Data
+@inject ProductService ProductService
+
+<h3>Product List</h3>
+
+<button class="btn btn-primary" @onclick="ShowCreateForm">Add New Product</button>
+
+@if (products != null && products.Any())
+{
+    <table class="table mt-3">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var product in products)
+            {
+                <tr>
+                    <td>@product.Name</td>
+                    <td>@product.Price</td>
+                    <td>@product.Description</td>
+                    <td>
+                        <button class="btn btn-warning" @onclick="() => EditPro(product.Id)">Edit</button>
+                        <button class="btn btn-danger" @onclick="() => DeleteProduct(product.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (isFormVisible)
+{
+    <div class="mt-3">
+        <h4>@(isEditMode ? "Edit" : "Add") Product</h4>
+        <EditForm Model="@cp" OnValidSubmit="OnSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="form-group">
+                <label for="productName">Name</label>
+                <InputText id="productName" class="form-control" @bind-Value="cp.Name" />
+            </div>
+            <div class="form-group">
+                <label for="productPrice">Price</label>
+                <InputNumber id="productPrice" class="form-control" @bind-Value="cp.Price" />
+            </div>
+            <div class="form-group">
+                <label for="productDescription">Description</label>
+                <InputTextArea id="productDescription" class="form-control" @bind-Value="cp.Description" />
+            </div>
+
+            <div class="form-group mt-3">
+                <button type="submit" class="btn btn-success">@((isEditMode) ? "Update" : "Create") Product</button>
+                <button type="button" class="btn btn-secondary ml-2" @onclick="CancelForm">Cancel</button>
+            </div>
+        </EditForm>
+    </div>
+}
+
+@code {
+    private List<Product> products;
+    private bool isFormVisible = false;
+    private bool isEditMode = false;
+    private Product cp = new Product();
+
+    protected override async Task OnInitializedAsync()
+    {
+        products = await ProductService.GetProducts();
+    }
+
+    private async Task CreateProduct()
+    {
+        await ProductService.AddProductAsync(cp);
+        await LoadProducts();
+        ClearForm();
+    }
+
+    private async Task UpdateProduct()
+    {
+        await ProductService.UpdateProductAsync(cp);
+        await LoadProducts();
+        ClearForm();
+    }
+
+    private async Task DeleteProduct(int id)
+    {
+        await ProductService.DeleteProductAsync(id);
+        await LoadProducts();
+    }
+
+    private async Task LoadProducts()
+    {
+        products = await ProductService.GetProducts();
+    }
+
+    private void ShowCreateForm()
+    {
+        isFormVisible = true;
+        isEditMode = false;
+        cp = new Product(); // Reset the form for new product
+    }
+
+    private void EditPro(int id)
+    {
+        isFormVisible = true;
+        isEditMode = true;
+        cp = products.FirstOrDefault(p => p.Id == id); // Get product for editing
+    }
+
+    private void CancelForm()
+    {
+        ClearForm();
+    }
+
+    private void ClearForm()
+    {
+        isFormVisible = false;
+        cp = new Product();
+    }
+
+    private async Task OnSubmit()
+    {
+        if (isEditMode)
+        {
+            await UpdateProduct();
+        }
+        else
+        {
+            await CreateProduct();
+        }
+    }
+}

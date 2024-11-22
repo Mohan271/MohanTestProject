@@ -1,0 +1,18 @@
+I created model for Binding data from DB and pass it inside App
+
+I created a DB Context File for DB interaction
+
+I have Created CRUD operation in a service called product service 
+
+all DB related access and crud done in abovve service 
+
+used Await and async operations
+
+I have used migrations for creating database for model i created 
+
+use for creating migration  
+-- 1)Add-Migration InitialCreate 
+2) update Database
+
+inside PMC
+
